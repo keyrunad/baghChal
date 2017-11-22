@@ -33,36 +33,49 @@ GRID = 120  # for drawing
 dimm2=6
 grid = []
 
-#game variables
-coords = [] #list for all coords
-for i in range(60, 660, 120):
-    for j in range(60, 660, 120):
-        coords.append([i, j])
-tiger_coords = [[60, 60], [540, 540], [60, 540], [540, 60]] #list for tiger coords
-corner_coords = [[60, 60], [540, 540], [60, 540], [540, 60]] #list for corner coords
-side_coords = [[60, 300], [300, 60], [540, 300], [300, 540]] #list for side coords
-goat_coords = [] #list for goat coords
-non_empty_coords = tiger_coords + goat_coords #list for non empty positions
-empty_coords = [] #list for empty positions
-pos_moves = [] #list for possible moves
-temp_tiger = [] #temporary list for selected tiger coords
-temp_goat = [] #temporary list for selected goat coords
-adj = [] #list for adjacent positions
-gkill = [] #goat kill list
-gdanger = [] #goats in danger list
-trapped = [] #trapped tiger list
-odd_coords = [[60, 180], [60, 420], [540, 180], [540, 420], [180, 60], [420, 60], [180, 540], [420, 540], [300, 180], [180, 300], [420, 300], [300, 420]] #list for all coords in which characters can't make diagonal moves
-for i in coords:
-    if i not in non_empty_coords:
-        empty_coords.append(i)
-		
-# This sets the margin between each cell
-MARGIN = 5
+def game_reset():
+    #start game variables
+    global coords
+    global tiger_coords
+    global goat_coords
+    global non_empty_coords
+    global empty_coords
+    global pos_moves
+    global temp_tiger
+    global temp_goat
+    global adj
+    global gkill
+    global gdanger
+    global trapped
+    global odd_coords
+    coords = [] #list for all coords
+    for i in range(60, 660, 120):
+        for j in range(60, 660, 120):
+            coords.append([i, j])
+    tiger_coords = [[60, 60], [540, 540], [60, 540], [540, 60]] #list for tiger coords
+    goat_coords = [] #list for goat coords
+    non_empty_coords = tiger_coords + goat_coords #list for non empty positions
+    empty_coords = [] #list for empty positions
+    for i in coords:
+        if i not in non_empty_coords:
+            empty_coords.append(i)
+    pos_moves = [] #list for possible moves
+    temp_tiger = [] #temporary list for selected tiger coords
+    temp_goat = [] #temporary list for selected goat coords
+    adj = [] #list for adjacent positions
+    gkill = [] #goat kill list
+    gdanger = [] #goats in danger list
+    trapped = [] #trapped tiger list
+    odd_coords = [[60, 180], [60, 420], [540, 180], [540, 420], [180, 60], [420, 60], [180, 540], [420, 540], [300, 180], [180, 300], [420, 300], [300, 420]] #list for all coords in which characters can't make diagonal moves
+#end game variables
+
 class Board:
+    """
     def __init__(self, dim,dimm2,grid):
         self.dim = dim
         self.dimm2 = dimm2
-        self.grid = grid        
+        self.grid = grid  
+    """
 
     def draw(self, screen):
         for row in range(1,5):
@@ -70,13 +83,13 @@ class Board:
                 #color = BROWN
                 #if row == 1 and color == 1:
                     #color = GREEN
-                pygame.draw.line(screen, BLACK, [90, 90], [570,570], 8)
-                pygame.draw.line(screen, BLACK, [90, 570], [570,90], 8)
-                pygame.draw.line(screen, BLACK, [330, 570], [570,330], 8)
-                pygame.draw.line(screen, BLACK, [90, 330], [330,570], 8)
-                pygame.draw.line(screen, BLACK, [330, 90], [570,330], 8)
-                pygame.draw.line(screen, BLACK, [90, 330], [330,90], 8)
-                pygame.draw.rect(screen, BLACK,[((WIDTH)*column-30),((HEIGHT)*row-30),WIDTH,HEIGHT],8)
+                pygame.draw.line(screen, BLACK, [90, 90], [570,570], 6)
+                pygame.draw.line(screen, BLACK, [90, 570], [570,90], 6)
+                pygame.draw.line(screen, BLACK, [330, 570], [570,330], 6)
+                pygame.draw.line(screen, BLACK, [90, 330], [330,570], 6)
+                pygame.draw.line(screen, BLACK, [330, 90], [570,330], 6)
+                pygame.draw.line(screen, BLACK, [90, 330], [330,90], 6)
+                pygame.draw.rect(screen, BLACK,[((WIDTH)*column-30),((HEIGHT)*row-30),WIDTH,HEIGHT],4)
 
     def draw_tiger(self, screen):
         #draw tiger
@@ -263,6 +276,19 @@ class Board:
         dtiger = pygame.image.load('dtiger.png')
         for c in trapped:
             screen.blit(dtiger, c)
+    def draw_res(self, screen):
+        #draw reset button
+        res = pygame.image.load('restart.png')
+        screen.blit(res, [640, 60])
+		
+    def draw_start(self, screen):
+        #draw start button
+        start = pygame.image.load('start.png')
+        screen.blit(start, [640, 60])
+    def draw_quit(self, screen):
+        #draw quit button
+        res = pygame.image.load('quit.png')
+        screen.blit(res, [810, 60])
 
 def main():
 
@@ -271,13 +297,15 @@ def main():
     screen = pygame.display.set_mode(WINDOW_SIZE)
     done = False                   # Loop until the user clicks the close button.
     clock = pygame.time.Clock()    # Used to manage how fast the screen updates
-    board = Board(DIM,dimm2,grid)
+    board = Board()
     turn = 1
     gcount = 0
     selected = 0
     refresh = True
-    msg = ''
-	
+    reset = True
+    msg = 'Please click Start button to start the game.'
+    game_end = False
+    start = False
     def displayvars():
         print('**************************************')
         print('Turn: Player ', turn)
@@ -310,16 +338,25 @@ def main():
             for j in range(1, 10):
                 pygame.draw.rect(screen, BLUE, [60*j, 60*i, 60, 60], 1)
         """
+        
+        if reset == True:
+            game_reset()
+            turn = 1
+            gcount = 0
+            selected = 0
+            reset = False
         if len(gkill) == 5:
-            print('GAME OVER! TIGER WON!')
-            break
+            msg = 'GAME OVER! TIGER WON!'
+            reset = True
+            game_end = True
         tt = []
         for kk in trapped:
             if kk not in tt:
                 tt.append(kk)
         if len(tt) == 4:
-            print('GAME OVER! GOAT WON!')
-            break
+            msg = 'GAME OVER! GOAT WON!'
+            reset = True
+            game_end = True
         if refresh == True:
             screen.fill(BWHITE)       # Set the screen background
             board.draw(screen)        #Drawing code for Draw the grid
@@ -331,118 +368,169 @@ def main():
             board.draw_agoat(screen)
             board.draw_dgoat(screen)
             board.draw_dtiger(screen)
+            if start == True:
+                board.draw_res(screen)
+            if start == False:
+                board.draw_start(screen)
+            board.draw_quit(screen)
             displayvars()
             refresh = False
             msg = ''
             
         for event in pygame.event.get():   # User did something
+            if event.type == pygame.MOUSEBUTTONDOWN and start == False: #start the game
+                pos = pygame.mouse.get_pos()
+                column = pos[0]
+                row = pos[1]
+                if column >= 640 and column <=790 and row >=60 and row <=100:
+                    start = True
+                    refresh = True
+                    msg = 'Game started.'
+                    continue
+            if event.type == pygame.MOUSEBUTTONDOWN and game_end == True and start == True: #reset the game after game is over and if restart button is clicked
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0]
+                    row = pos[1]
+                    if column >= 640 and column <=790 and row >=60 and row <=100:
+                        reset = True
+                        refresh = True
+                        game_end = False
+                        msg = 'Game restarted.'
+            if event.type == pygame.MOUSEBUTTONDOWN and game_end == True and start == True: #quit if quit button is clicked
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0]
+                    row = pos[1]
+                    if column >= 810 and column <=910 and row >=60 and row <=100:
+                        done = True
+            
+            if event.type == pygame.MOUSEBUTTONDOWN and game_end == False and start == False: #quit if quit button is clicked
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0]
+                    row = pos[1]
+                    if column >= 810 and column <=910 and row >=60 and row <=100:
+                        done = True
+						
             if event.type == pygame.QUIT:  # If user clicked close
                 done = True        # Flag that we are done so we exit this loop
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1 and gcount < 20: #first place 20 goats on the board
-                pos = pygame.mouse.get_pos()
-                column = 60*(pos[0] // 60)
-                row = 60*(pos[1] // 60)
-                if [column, row] in empty_coords:
-                    board.place_goat(screen, [column, row])
-                    empty_coords.remove([column, row])
-                    goat_coords.append([column, row])
-                    gcount += 1
-                    turn = 2
-                    refresh = True
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1 and gcount == 20 and selected == 0: #select goat after 20 goats have been placed
-                pos = pygame.mouse.get_pos()
-                column = 60*(pos[0] // 60)
-                row = 60*(pos[1] // 60)
-                if [column, row] in goat_coords: #select the goat
-                    board.poss_moves(column, row)
-                    if len(pos_moves) == 0: #if selected goat has no moves
-                        msg = 'No possible moves'
-                        del pos_moves[:]
+
+            
+            elif game_end == False and start == True: #when game is started but not over
+                if event.type == pygame.MOUSEBUTTONDOWN: #reset the game if restart button is clicked
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0]
+                    row = pos[1]
+                    if column >= 640 and column <=790 and row >=60 and row <=100:
+                        reset = True
                         refresh = True
-                        continue
-                    temp_goat.append([column, row])
-                    goat_coords.remove(temp_goat[0])
-                    selected = 1
-                    refresh = True
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1 and gcount == 20 and selected == 1: #move the goat
-                pos = pygame.mouse.get_pos()
-                column = 60*(pos[0] // 60)
-                row = 60*(pos[1] // 60)
-                if [column, row] in temp_goat: #if goat is deselected
-                    goat_coords.append([column, row])
-                    selected = 0
-                    del pos_moves[:]
-                    del temp_goat[:]
-                    refresh = True
-                if [column, row] in pos_moves: #if goat is moved
-                    goat_coords.append([column, row])
-                    empty_coords.append(temp_goat[0])
-                    empty_coords.remove([column, row])
-                    del temp_goat[:]
-                    del pos_moves[:]
-                    del trapped[:]
-                    selected = 0
-                    turn = 2
-                    refresh = True
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 2 and selected == 0: #select the tiger
-                pos = pygame.mouse.get_pos()
-                column = 60*(pos[0] // 60)
-                row = 60*(pos[1] // 60)
-                if [column, row] in tiger_coords: #select the tiger
-                    board.poss_moves(column, row)
-                    if len(pos_moves) == 0: #if selected tiger is trapped
-                        msg = 'Can not selected trapped tiger'
+                        msg = 'Game restarted.'
+                if event.type == pygame.MOUSEBUTTONDOWN: #quit if quit button is clicked
+                    pos = pygame.mouse.get_pos()
+                    column = pos[0]
+                    row = pos[1]
+                    if column >= 810 and column <=910 and row >=60 and row <=100:
+                        done = True
+                if event.type == pygame.MOUSEBUTTONDOWN and turn == 1 and gcount < 20: #first place 20 goats on the board
+                    pos = pygame.mouse.get_pos()
+                    column = 60*(pos[0] // 60)
+                    row = 60*(pos[1] // 60)
+                    if [column, row] in empty_coords:
+                        board.place_goat(screen, [column, row])
+                        empty_coords.remove([column, row])
+                        goat_coords.append([column, row])
+                        gcount += 1
+                        turn = 2
                         refresh = True
+                elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1 and gcount == 20 and selected == 0: #select goat after 20 goats have been placed
+                    pos = pygame.mouse.get_pos()
+                    column = 60*(pos[0] // 60)
+                    row = 60*(pos[1] // 60)
+                    if [column, row] in goat_coords: #select the goat
+                        board.poss_moves(column, row)
+                        if len(pos_moves) == 0: #if selected goat has no moves
+                            msg = 'No possible moves'
+                            del pos_moves[:]
+                            refresh = True
+                            continue
+                        temp_goat.append([column, row])
+                        goat_coords.remove(temp_goat[0])
+                        selected = 1
+                        refresh = True
+                elif event.type == pygame.MOUSEBUTTONDOWN and turn == 1 and gcount == 20 and selected == 1: #move the goat
+                    pos = pygame.mouse.get_pos()
+                    column = 60*(pos[0] // 60)
+                    row = 60*(pos[1] // 60)
+                    if [column, row] in temp_goat: #if goat is deselected
+                        goat_coords.append([column, row])
+                        selected = 0
                         del pos_moves[:]
-                        continue
-                    temp_tiger.append([column, row])
-                    tiger_coords.remove(temp_tiger[0])
-                    for i in pos_moves:
-                        tgx = (i[0]+temp_tiger[0][0])/2
-                        tgy = (i[1]+temp_tiger[0][1])/2
+                        del temp_goat[:]
+                        refresh = True
+                    if [column, row] in pos_moves: #if goat is moved
+                        goat_coords.append([column, row])
+                        empty_coords.append(temp_goat[0])
+                        empty_coords.remove([column, row])
+                        del temp_goat[:]
+                        del pos_moves[:]
+                        del trapped[:]
+                        selected = 0
+                        turn = 2
+                        refresh = True
+                elif event.type == pygame.MOUSEBUTTONDOWN and turn == 2 and selected == 0: #select the tiger
+                    pos = pygame.mouse.get_pos()
+                    column = 60*(pos[0] // 60)
+                    row = 60*(pos[1] // 60)
+                    if [column, row] in tiger_coords: #select the tiger
+                        board.poss_moves(column, row)
+                        if len(pos_moves) == 0: #if selected tiger is trapped
+                            msg = 'Can not selected trapped tiger'
+                            refresh = True
+                            del pos_moves[:]
+                            continue
+                        temp_tiger.append([column, row])
+                        tiger_coords.remove(temp_tiger[0])
+                        for i in pos_moves:
+                            tgx = (i[0]+temp_tiger[0][0])/2
+                            tgy = (i[1]+temp_tiger[0][1])/2
+                            if [tgx, tgy] in goat_coords:
+                                gdanger.append([tgx, tgy])
+                        selected = 1
+                        refresh = True
+                        
+                elif event.type == pygame.MOUSEBUTTONDOWN and turn == 2 and selected == 1: #move the tiger
+                    pos = pygame.mouse.get_pos()
+                    column = 60*(pos[0] // 60)
+                    row = 60*(pos[1] // 60)
+                    if [column, row] in temp_tiger: #if tiger is deselected
+                        tiger_coords.append([column, row])
+                        selected = 0
+                        del pos_moves[:]
+                        del temp_tiger[:]
+                        del adj[:]
+                        del gdanger[:]
+                        refresh = True
+                    if [column, row] in pos_moves: #if tiger is moved
+                        tiger_coords.append([column, row])
+                        empty_coords.append(temp_tiger[0])
+                        selected = 0
+                        empty_coords.remove([column, row])
+                        tgx = (column + temp_tiger[0][0])/2
+                        tgy = (row + temp_tiger[0][1])/2
                         if [tgx, tgy] in goat_coords:
-                            gdanger.append([tgx, tgy])
-                    selected = 1
-                    refresh = True
-					
-            elif event.type == pygame.MOUSEBUTTONDOWN and turn == 2 and selected == 1: #move the tiger
-                pos = pygame.mouse.get_pos()
-                column = 60*(pos[0] // 60)
-                row = 60*(pos[1] // 60)
-                if [column, row] in temp_tiger: #if tiger is deselected
-                    tiger_coords.append([column, row])
-                    selected = 0
-                    del pos_moves[:]
-                    del temp_tiger[:]
-                    del adj[:]
-                    del gdanger[:]
-                    refresh = True
-                if [column, row] in pos_moves: #if tiger is moved
-                    tiger_coords.append([column, row])
-                    empty_coords.append(temp_tiger[0])
-                    selected = 0
-                    empty_coords.remove([column, row])
-                    tgx = (column + temp_tiger[0][0])/2
-                    tgy = (row + temp_tiger[0][1])/2
-                    if [tgx, tgy] in goat_coords:
-                        gkill.append([tgx, tgy])
-                        goat_coords.remove([tgx, tgy])
-                        empty_coords.append([tgx, tgy])
-                    del pos_moves[:]
-                    del temp_tiger[:]
-                    del adj[:]
-                    del gdanger[:]
-                    del trapped[:]
-                    turn = 1
-                    refresh = True
+                            gkill.append([tgx, tgy])
+                            goat_coords.remove([tgx, tgy])
+                            empty_coords.append([tgx, tgy])
+                        del pos_moves[:]
+                        del temp_tiger[:]
+                        del adj[:]
+                        del gdanger[:]
+                        del trapped[:]
+                        turn = 1
+                        refresh = True
 
         # Go ahead and update the screen with what we've drawn.
         pygame.display.flip()
-     
-    # Be IDLE friendly. If you forget this line, the program will 'hang' on exit
-    pygame.quit()
-
-
-start = input("Do you want to play the game? Enter 's' to start, any other key to exit: ")
-if start.lower() == 's':
-    main()
+        if done == True:
+            pygame.quit()
+#start = input("Do you want to play the game? Enter 's' to start, any other key to exit: ")
+#if start.lower() == 's':
+main()
