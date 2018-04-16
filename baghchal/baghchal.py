@@ -1,6 +1,6 @@
 """
-    Bagh Chal : Nepali traditional board game based on Pygame
-    by Keyrun Adhikari and Chad Messam
+    Bagh Chal : Nepali traditional board game built on Pygame
+    by Keyrun Adhikari
 """
 import pygame
 import os
